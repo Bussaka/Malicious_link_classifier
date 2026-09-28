@@ -1,3 +1,5 @@
+
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from pydantic import BaseModel
 import joblib
@@ -22,6 +24,14 @@ feature_columns = ['url_length', 'domain_length', 'path_length', 'num_digits',
                    'num_encoded_chars', 'directory_depth', 'subdomain_count']
 
 app = FastAPI(title="URL Threat Classifier API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows any website/extension to query the API
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class URLRequest(BaseModel):
     url: str
