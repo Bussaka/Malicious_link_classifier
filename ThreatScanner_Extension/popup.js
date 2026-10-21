@@ -3,9 +3,21 @@ const hostEl = document.getElementById("host");
 const revokeBtn = document.getElementById("revoke");
 const rescanBtn = document.getElementById("rescan");
 
+// Line icons drawn inside the shield outline; static markup, never user data
+const SHIELD = '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>';
+const STATUS_ICONS = {
+    safe: SHIELD + '<path d="m9 12 2 2 4-4"/>',
+    malicious: SHIELD + '<path d="M12 8v4"/><path d="M12 16h.01"/>',
+    allowed: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+    "": SHIELD
+};
+
 function setStatus(cls, text, detail) {
     statusEl.className = cls;
-    statusEl.firstChild.textContent = text;
+    document.getElementById("status-icon").innerHTML =
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + STATUS_ICONS[cls] + '</svg>';
+    document.getElementById("status-title").textContent = text;
     document.getElementById("detail").textContent = detail || "";
 }
 
@@ -59,13 +71,13 @@ chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
 
         // Same precedence as content.js
         if (result[keys.allow]) {
-            setStatus("allowed", "⚠️ Allowed by you", "You chose to proceed to this domain despite a warning.");
+            setStatus("allowed", "Allowed by you", "You chose to continue to this domain despite a warning.");
             revokeBtn.classList.remove("hidden");
         } else if (isFresh(malicious, MALICIOUS_TTL_MS)) {
-            setStatus("malicious", "🚨 Blocked", malicious.confidence + "% confidence · scanned " + formatAge(malicious.timestamp));
+            setStatus("malicious", "Blocked", "Malicious score " + Number(malicious.confidence).toFixed(1) + "% · scanned " + formatAge(malicious.timestamp));
             rescanBtn.classList.remove("hidden");
         } else if (isFresh(safe, SAFE_TTL_MS)) {
-            setStatus("safe", "✅ Domain safelisted", "Scanned " + formatAge(safe.timestamp));
+            setStatus("safe", "Domain safelisted", "Scanned " + formatAge(safe.timestamp));
             rescanBtn.classList.remove("hidden");
         } else {
             setStatus("", "Not scanned yet", "Reload the page to scan it.");

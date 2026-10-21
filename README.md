@@ -1,4 +1,4 @@
-# 🛡️ Real-Time Malicious URL Classifier & Browser Shield
+# Real-Time Malicious URL Classifier & Browser Shield
 
 An end-to-end machine learning pipeline and client-side browser extension that detects malicious links and phishing attempts using purely lexical and structural analysis of the URL — no page content is fetched.
 
@@ -17,7 +17,7 @@ Unlike traditional blocklists that only stop known threats, this tool scores URL
 * Toolbar Popup: Shows the current site's verdict and lets you rescan it, revoke a "proceed anyway" exception, or clear all cached verdicts.
 * Streamlit Dashboard: Interactive web UI for manual URL analysis.
 
-## 📊 Model Performance (v4)
+## Model Performance (v4)
 
 All numbers are on data the model never trained on, split by host so no website appears in both training and test. "Real browsing" blends 80% inner pages (upvoted Hacker News links) with 20% homepages (Tranco top-100k sites).
 
@@ -37,7 +37,7 @@ v3 reported 91.94% accuracy, but that test split shared websites with its traini
 * The benign inner-page sample comes from Hacker News, which leans technical; false-positive rates on other kinds of browsing may differ.
 * Threat feeds change daily. Retrain periodically (see below) to keep up with new campaigns.
 
-## 📁 Project Structure
+## Project Structure
 | File | Purpose |
 |---|---|
 | `url_model_v4.ipynb` | Current model: data cleaning, external data, model comparison, allowlist, threshold, export |
@@ -49,7 +49,7 @@ v3 reported 91.94% accuracy, but that test split shared websites with its traini
 | `app.py` | Streamlit dashboard for manual scans |
 | `ThreatScanner_Extension/` | Chrome extension (content script, background worker, popup) |
 
-## 💻 Local Environment Setup
+## Local Environment Setup
 
 ### 0. Prerequisites
 * Python 3.12
@@ -97,7 +97,7 @@ streamlit run app.py
 ```
 Then open http://localhost:8501.
 
-## 🔁 Retraining
+## Retraining
 1. Download the [Malicious URLs dataset](https://www.kaggle.com/datasets/sid321axn/malicious-urls-dataset) and place `malicious_phish.csv` in the project root.
 2. Fetch the external datasets (Tranco, PhishTank, URLhaus, OpenPhish, Hacker News) into `data/external/`:
    ```bash

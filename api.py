@@ -44,7 +44,7 @@ app = FastAPI(title="URL Threat Classifier API")
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=r"chrome-extension://.*",
-    allow_methods=["POST"],
+    allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
 
@@ -102,6 +102,18 @@ def score(url):
     p_text, exp_text = score_text(url)
     explanation = {k: v / 2 for k, v in {**exp_rf, **exp_text}.items()}
     return (p_rf + p_text) / 2, explanation
+
+
+@app.get("/health")
+def health():
+    # Lets the dashboard show whether the backend is up and which model it serves
+    return {
+        "status": "ok",
+        "model": bundle['version'],
+        "kind": KIND,
+        "threshold": round(THRESHOLD, 4),
+        "allowlist_size": len(ALLOWLIST),
+    }
 
 
 @app.post("/scan")
