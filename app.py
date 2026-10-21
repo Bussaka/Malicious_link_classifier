@@ -35,15 +35,27 @@ if st.button("Scan URL"):
                     else:
                         st.success(f"✅ **Safe.** This URL is classified as {status}.")
                         
-                    st.write(f"**Model Confidence:** {confidence}%")
-                    st.progress(int(confidence))
+                    if data.get("reason") == "allowlisted":
+                        st.info("This domain is on the popularity allowlist, so it was not sent to the model.")
+                    elif data.get("reason") == "document_platform":
+                        st.info("Document platforms (Google Docs/Drive/Forms, SharePoint/OneDrive) are never blocked: "
+                                "their URLs look the same whether the document is legitimate or a phishing form, "
+                                "so the model can't judge them. Check the sender before entering any details.")
+                    else:
+                        # The model blocks above a tuned threshold, not at 50%, so the raw score
+                        # is shown against that threshold rather than as a confidence
+                        score = data.get("malicious_probability", 0.0)
+                        threshold = data.get("threshold", 0.5)
+                        st.write(f"**Malicious score:** {score:.1%} (blocked above {threshold:.1%})")
+                        st.progress(min(max(score, 0.0), 1.0))
+                        st.caption(f"Confidence in this verdict: {confidence}%")
                     
                     # Fetch and render the SHAP Explainability Chart
                     explanation = data.get("explanation", {})
                     if explanation:
                         st.markdown("---")
                         st.subheader("🧠 Model Decision Breakdown")
-                        st.write("This chart shows exactly which features pushed the model toward predicting 'Malicious' (Red) or 'Safe' (Blue).")
+                        st.write("This chart shows which features (and, for the text model, which character sequences) pushed the model toward 'Malicious' (Red) or 'Safe' (Blue).")
                         
                         # Convert the dictionary to a DataFrame for plotting
                         shap_df = pd.DataFrame(list(explanation.items()), columns=['Feature', 'Impact'])

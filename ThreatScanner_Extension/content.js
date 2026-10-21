@@ -59,7 +59,11 @@ if (hostname === "127.0.0.1" || hostname === "localhost") {
         features.forEach(f => {
             const widthPct = (Math.abs(f.impact) / maxAbs) * 100;
             const color = f.impact > 0 ? '#ff4d4d' : '#4da6ff'; 
-            const formattedName = escapeHtml(f.name.replace(/_/g, ' ').toUpperCase());
+            // Character n-grams (e.g. 'ngram "ogin."') are shown verbatim - case and
+            // punctuation are the point; feature names like domain_entropy are prettified
+            const formattedName = escapeHtml(f.name.startsWith('ngram ')
+                ? f.name
+                : f.name.replace(/_/g, ' ').toUpperCase());
             
             chartHtml += `
                 <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #ddd; font-family: monospace;">
