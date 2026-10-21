@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; width: 280px; margin: 0; padding: 14px; background: #1a1a1a; color: #ddd; font-size: 13px; }
+        h1 { font-size: 15px; margin: 0 0 10px 0; color: #fff; }
+        #host { font-family: monospace; word-break: break-all; color: #aaa; margin-bottom: 10px; }
+        #status { padding: 8px 10px; border-radius: 5px; margin-bottom: 12px; font-weight: bold; background: #333; }
+        #status.safe { background: #0d3b1e; color: #4dff88; }
+        #status.malicious { background: #3b0d0d; color: #ff4d4d; }
+        #status.allowed { background: #3b2e0d; color: #ffc44d; }
+        #detail { font-weight: normal; font-size: 12px; color: #bbb; margin-top: 4px; }
+        button { display: block; width: 100%; margin-top: 6px; padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; background: #333; color: #ddd; }
+        button:hover { background: #444; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>🛡️ ThreatScanner Shield</h1>
+    <div id="host"></div>
+    <div id="status">Checking…<div id="detail"></div></div>
+    <button id="revoke" class="hidden">Remove exception &amp; block again</button>
+    <button id="rescan" class="hidden">Forget verdict &amp; rescan</button>
+    <button id="clear-all">Clear all cached verdicts</button>
+    <script src="cache.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>
