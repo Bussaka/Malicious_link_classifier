@@ -1,0 +1,62 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      # The trained model isn't in the repo, so the API tests use their stand-in model
+      # and the real-model smoke test skips itself
+      - name: Run pytest
+        run: python -m pytest -v
+
+  extension:
+    name: Extension checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Syntax-check scripts
+        run: for f in ThreatScanner_Extension/*.js; do node --check "$f"; done
+
+      - name: Validate manifest
+        run: |
+          node -e '
+            const fs = require("fs");
+            const dir = "ThreatScanner_Extension/";
+            const m = JSON.parse(fs.readFileSync(dir + "manifest.json", "utf8"));
+            const files = [m.background.service_worker, m.action.default_popup, m.options_ui.page,
+                           ...m.content_scripts.flatMap(c => c.js),
+                           ...Object.values(m.icons), ...Object.values(m.action.default_icon)];
+            const missing = files.filter(f => !fs.existsSync(dir + f));
+            if (missing.length) { console.error("Missing files:", missing); process.exit(1); }
+            console.log("manifest v" + m.version + ": " + files.length + " referenced files present");
+          '
+
+      - name: Run Node tests
+        run: node --test "tests/extension/*.test.mjs"

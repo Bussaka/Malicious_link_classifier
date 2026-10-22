@@ -2,3 +2,6 @@
 pytest==8.4.2
 # Browser end-to-end test (tests/e2e/run_e2e.py)
 websockets==16.1
+# Retraining (retrain.py runs url_model_v4.ipynb)
+nbclient==0.11.0
+ipykernel==7.3.0

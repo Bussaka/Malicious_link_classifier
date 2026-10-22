@@ -145,6 +145,8 @@ def health():
         "status": "ok",
         "model": bundle['version'],
         "kind": KIND,
+        # When the bundle was trained (absent on bundles from before retrain.py), to spot a stale model
+        "trained_at": bundle.get('trained_at'),
         "threshold": round(THRESHOLD, 4),
         "allowlist_size": len(ALLOWLIST),
     }

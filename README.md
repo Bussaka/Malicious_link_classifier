@@ -1,5 +1,8 @@
 # Real-Time Malicious URL Classifier & Browser Shield
 
+[![Tests](https://github.com/Bussaka/Malicious_link_classifier/actions/workflows/tests.yml/badge.svg)](https://github.com/Bussaka/Malicious_link_classifier/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 An end-to-end machine learning pipeline and client-side browser extension that detects malicious links and phishing attempts using purely lexical and structural analysis of the URL — no page content is fetched.
 
 Unlike traditional blocklists that only stop known threats, this tool scores URLs it has never seen, using an ensemble of a Random Forest over engineered features (domain entropy, subdomain abuse, brand impersonation, …) and a character n-gram model. A popularity allowlist handles well-known sites, and every model verdict comes with an explanation (SHAP values and n-gram weights) shown directly in the browser.
@@ -53,10 +56,12 @@ v3 reported 91.94% accuracy, but that test split shared websites with its traini
 | `features.py` | URL normalization and feature extraction, shared by the notebooks and the API |
 | `allowlist.py` / `allowlist.txt` | Popularity allowlist, the platform exclusions applied to it, and the never-block document platforms |
 | `fetch_data.py` | Downloads the external datasets used by `url_model_v4.ipynb` |
+| `retrain.py` | Fetches fresh data, retrains, and promotes the model only if it passes quality gates |
 | `api.py` | FastAPI backend: `POST /scan` returns verdict, score, threshold and explanation |
 | `app.py` | Streamlit dashboard for manual scans |
 | `ThreatScanner_Extension/` | Chrome extension (content script, background worker, popup, settings page, icons) |
-| `tests/` | pytest suite (features, allowlist, API), Node tests for the extension's shared logic, and a browser end-to-end test |
+| `tests/` | pytest suite (features, allowlist, API, retraining), Node tests for the extension's shared logic, and a browser end-to-end test |
+| `.github/workflows/tests.yml` | CI: runs the Python and extension tests on every push and pull request |
 
 ## Local Environment Setup
 
@@ -124,11 +129,50 @@ python tests/e2e/run_e2e.py          # second terminal
 It needs Microsoft Edge (or set `BROWSER` to a Chromium / Chrome for Testing binary; branded Chrome 137+ ignores `--load-extension`) and port 80 free, because the test site is served as `*.localtest.me`. Screenshots are saved to `tests/e2e/output/`.
 
 ## Retraining
-1. Download the [Malicious URLs dataset](https://www.kaggle.com/datasets/sid321axn/malicious-urls-dataset) and place `malicious_phish.csv` in the project root.
-2. Fetch the external datasets (Tranco, PhishTank, URLhaus, OpenPhish, Hacker News) into `data/external/`:
-   ```bash
-   python fetch_data.py
-   ```
-3. Run every cell of `url_model_v4.ipynb` (about 10 minutes). It writes `url_classifier_v4.joblib` and `allowlist.txt`, then restart the API.
+Threat campaigns change constantly, so the model should be retrained regularly (monthly is a reasonable default).
 
-Rerunning `url_eda.ipynb` reproduces the old v3 model (`url_classifier_v3.joblib`), which `url_model_v4.ipynb` uses as its baseline.
+**One-time setup:** download the [Malicious URLs dataset](https://www.kaggle.com/datasets/sid321axn/malicious-urls-dataset), place `malicious_phish.csv` in the project root, and `pip install -r requirements-dev.txt`.
+
+**Retrain:**
+```bash
+python retrain.py              # fetch fresh feeds, train, check, promote
+python retrain.py --dry-run    # train and check only; the live model is untouched
+python retrain.py --skip-fetch # reuse the data already in data/external/
+```
+Each run downloads fresh threat data (`fetch_data.py`), trains `url_model_v4.ipynb` into `runs/<timestamp>/` (about 10-15 minutes), and checks the candidate's held-out results against minimum quality gates:
+
+| Gate | Needs | Current model |
+|---|---|---|
+| Real browsing wrongly blocked | at most 3.5% | 2.4% |
+| PhishTank phishing caught | at least 70% | 80.4% |
+| OpenPhish phishing caught | at least 80% | 89.6% |
+| URLhaus malware caught | at least 85% | 94.7% |
+
+Only a candidate that passes every gate replaces `url_classifier_v4.joblib` and `allowlist.txt`; the previous versions are kept as `*.previous.*` for rollback. Restart the API afterwards to load the new model (the dashboard footer shows the training date). Every run is logged to `runs/retrain_log.jsonl`, and a failed run's executed notebook in its run folder shows what went wrong. Exit code 0 = promoted, 1 = rejected by the gates, 2 = could not train.
+
+**Schedule it** (1st of each month at 03:00, output appended to `runs/retrain.out`):
+
+*Windows (Task Scheduler)*, in a Command Prompt (`cmd.exe`, not PowerShell) opened in the project folder:
+```bat
+schtasks /Create /TN "ThreatScanner retrain" /SC MONTHLY /D 1 /ST 03:00 /TR "cmd /c cd /d \"%CD%\" && python retrain.py >> runs\retrain.out 2>&1"
+```
+*macOS / Linux (cron)*, via `crontab -e`:
+```
+0 3 1 * * cd /path/to/Malicious_link_classifier && python3 retrain.py >> runs/retrain.out 2>&1
+```
+
+Running `url_model_v4.ipynb` by hand still works and writes straight to the project root. Rerunning `url_eda.ipynb` reproduces the old v3 model (`url_classifier_v3.joblib`), which `url_model_v4.ipynb` uses as an optional baseline.
+
+## License and Data Sources
+The code is released under the [MIT License](LICENSE).
+
+The model is trained and evaluated on public datasets, which are **not** included in this repository: `fetch_data.py` downloads them from their sources, and each remains subject to its provider's terms of use (some restrict commercial use, so check them before using a trained model commercially).
+
+| Source | Used for |
+|---|---|
+| [Malicious URLs dataset](https://www.kaggle.com/datasets/sid321axn/malicious-urls-dataset) (Kaggle, sid321axn) | Base benign, phishing and malware URLs |
+| [Tranco](https://tranco-list.eu/) top-sites list (Le Pochat et al., *Tranco: A Research-Oriented Top Sites Ranking Hardened Against Manipulation*, NDSS 2019) | Benign homepages and the allowlist (`allowlist.txt` is derived from it) |
+| [PhishTank](https://phishtank.org/) | Verified phishing URLs |
+| [URLhaus](https://urlhaus.abuse.ch/) by abuse.ch | Malware distribution URLs |
+| [OpenPhish](https://openphish.com/) community feed | Held-out phishing test set |
+| [Hacker News](https://news.ycombinator.com/) via the [Algolia HN Search API](https://hn.algolia.com/api) | Benign inner pages |

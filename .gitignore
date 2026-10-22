@@ -22,3 +22,6 @@ data/
 
 # End-to-end test screenshots
 tests/e2e/output/
+
+# Retraining runs (candidate models, metrics, executed notebooks, log)
+runs/

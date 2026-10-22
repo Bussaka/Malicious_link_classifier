@@ -3,6 +3,8 @@
 fastapi[standard]==0.141.1
 uvicorn==0.51.0
 streamlit==1.59.2
+# app.py draws its chart with Altair directly; pinned rather than left to Streamlit's range
+altair==6.2.2
 pandas==3.0.3
 numpy==2.5.3
 scikit-learn==1.4.2

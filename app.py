@@ -304,8 +304,9 @@ if submitted or st.session_state.pop("run_scan", False):
                      icon=":material/schedule:")
 
 if health:
+    trained = f" &middot; trained {html.escape(health['trained_at'][:10])}" if health.get('trained_at') else ""
     st.markdown(f"""
-        <div class="ts-footer">Model {html.escape(str(health['model']))} ({html.escape(str(health['kind']))})
+        <div class="ts-footer">Model {html.escape(str(health['model']))} ({html.escape(str(health['kind']))}){trained}
         &middot; blocking threshold {health['threshold']:.1%}
         &middot; {health['allowlist_size']:,} allowlisted domains</div>
     """, unsafe_allow_html=True)
