@@ -31,6 +31,21 @@
         button.primary:hover { background: #1c5cab; }
         button.subtle { border-color: transparent; color: #4a5d78; font-weight: 500; }
         .hidden { display: none; }
+        #api { display: flex; align-items: flex-start; gap: 8px; padding: 9px 16px; font-size: 12px;
+               border-bottom: 1px solid #e8eef7; background: #f4f8fd; color: #4a5d78; }
+        #api .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; background: #9aa8bd; }
+        #api.online .dot { background: #17803d; }
+        #api.offline { background: #fdf3f3; border-bottom-color: #f3caca; }
+        #api.offline .dot { background: #c23434; }
+        #api.paused { background: #f6f7f9; }
+        #api.paused .dot { background: #7b8aa1; }
+        .footer-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .footer-row button { width: auto; margin: 0; padding: 4px 6px; }
+        #api-title { font-weight: 600; color: #0f2747; }
+        #api.offline #api-title { color: #c23434; }
+        #api code { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: 11px;
+                    background: #ffffff; border: 1px solid #f3caca; border-radius: 4px; padding: 1px 4px; }
+        #api-retry { display: inline-block; width: auto; margin: 6px 0 0 0; padding: 4px 10px; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -38,6 +53,17 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <div class="wordmark">Threat<span>Scanner</span> Shield</div>
     </header>
+    <div id="api">
+        <span class="dot"></span>
+        <div>
+            <div id="api-title">Checking protection&hellip;</div>
+            <div id="api-detail"></div>
+            <div id="api-offline-help" class="hidden">Pages open without being scanned. Nothing answered at
+                <code id="api-url"></code>. Start it with <code>uvicorn api:app --port 8000</code>
+                <button id="api-retry">Check again</button>
+            </div>
+        </div>
+    </div>
     <main>
         <div class="label">Current site</div>
         <div id="host">&mdash;</div>
@@ -47,7 +73,12 @@
         </div>
         <button id="revoke" class="primary hidden">Remove exception and block again</button>
         <button id="rescan" class="hidden">Forget verdict and rescan</button>
-        <button id="clear-all" class="subtle">Clear all cached verdicts</button>
+        <button id="pause" class="hidden">Pause protection for 1 hour</button>
+        <button id="resume" class="primary hidden">Resume protection</button>
+        <div class="footer-row">
+            <button id="clear-all" class="subtle">Clear cached verdicts</button>
+            <button id="open-options" class="subtle">Settings</button>
+        </div>
     </main>
     <script src="cache.js"></script>
     <script src="popup.js"></script>

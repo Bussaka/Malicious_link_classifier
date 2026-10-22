@@ -284,7 +284,7 @@ if submitted or st.session_state.pop("run_scan", False):
     else:
         try:
             with st.spinner("Analyzing the address..."):
-                response = requests.post(f"{API_URL}/scan", json={"url": url}, timeout=10)
+                response = requests.post(f"{API_URL}/scan", json={"url": url, "explain": True}, timeout=10)
             if response.status_code != 200:
                 st.error(f"The API rejected the request (HTTP {response.status_code}). Check the backend logs.",
                          icon=":material/error:")

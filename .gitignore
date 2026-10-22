@@ -19,3 +19,6 @@ Thumbs.db
 
 # Downloaded external datasets (Tranco, OpenPhish, URLhaus)
 data/
+
+# End-to-end test screenshots
+tests/e2e/output/

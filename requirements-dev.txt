@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest==8.4.2
+# Browser end-to-end test (tests/e2e/run_e2e.py)
+websockets==16.1

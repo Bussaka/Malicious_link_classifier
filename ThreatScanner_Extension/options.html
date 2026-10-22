@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ThreatScanner Shield settings</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #ffffff; color: #0f2747; font: 14px/1.5 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif; }
+        header { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 28px; border-bottom: 1px solid #e8eef7; color: #256abf; }
+        .wordmark { font-weight: 700; font-size: 16px; color: #0f2747; letter-spacing: -0.01em; }
+        .wordmark span { color: #256abf; }
+        main { max-width: 640px; margin: 0 auto; padding: 32px 24px 64px; }
+        h1 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 24px; }
+        section { border: 1px solid #dce6f2; border-radius: 12px; padding: 20px 22px; margin-bottom: 16px; }
+        h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+        .hint { color: #4a5d78; font-size: 13px; margin: 0 0 14px; }
+        .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        input[type=url], select { font: 14px 'Segoe UI', system-ui, sans-serif; color: #0f2747; padding: 8px 10px;
+            border: 1px solid #c5d6ee; border-radius: 8px; background: #ffffff; }
+        input[type=url] { flex: 1; min-width: 220px; font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: 13px; }
+        button { font: 600 13px 'Segoe UI', system-ui, sans-serif; border-radius: 8px; padding: 8px 14px; cursor: pointer;
+            background: #ffffff; color: #256abf; border: 1px solid #c5d6ee; }
+        button:hover { background: #f4f8fd; }
+        button.primary { background: #256abf; color: #ffffff; border-color: #256abf; }
+        button.primary:hover { background: #1c5cab; }
+        button.danger { color: #c23434; border-color: #f3caca; }
+        .message { font-size: 13px; margin-top: 10px; min-height: 20px; }
+        .message.ok { color: #17803d; }
+        .message.error { color: #c23434; }
+        .state { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+        .state .dot { width: 8px; height: 8px; border-radius: 50%; background: #17803d; }
+        .state.paused .dot { background: #7b8aa1; }
+        ul { list-style: none; margin: 0; padding: 0; }
+        li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-top: 1px solid #eef2f8; }
+        li:first-child { border-top: none; }
+        li code { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: 13px; }
+        li button { padding: 4px 10px; font-size: 12px; }
+        .empty { color: #7b8aa1; font-size: 13px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <header>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div class="wordmark">Threat<span>Scanner</span> Shield</div>
+    </header>
+    <main>
+        <h1>Settings</h1>
+
+        <section>
+            <h2>API connection</h2>
+            <p class="hint">Where the extension sends addresses to be scored. Use the default unless you run the API on another port or machine.</p>
+            <div class="row">
+                <input type="url" id="api-url" spellcheck="false" placeholder="http://127.0.0.1:8000">
+                <button id="test">Test connection</button>
+                <button id="save-api" class="primary">Save</button>
+            </div>
+            <div class="message" id="api-message"></div>
+        </section>
+
+        <section>
+            <h2>Protection</h2>
+            <p class="hint">While paused, pages, links and downloads are not checked.</p>
+            <div class="state" id="protection-state"><span class="dot"></span><span id="protection-text"></span></div>
+            <div class="row" id="pause-controls">
+                <select id="pause-duration">
+                    <option value="900000">for 15 minutes</option>
+                    <option value="3600000" selected>for 1 hour</option>
+                    <option value="28800000">for 8 hours</option>
+                    <option value="-1">until I resume</option>
+                </select>
+                <button id="pause">Pause protection</button>
+            </div>
+            <button id="resume" class="primary hidden">Resume protection</button>
+        </section>
+
+        <section>
+            <h2>Exceptions</h2>
+            <p class="hint">Domains you chose to open despite a warning. They are never blocked until removed.</p>
+            <ul id="exceptions"></ul>
+        </section>
+
+        <section>
+            <h2>Cached verdicts</h2>
+            <p class="hint" id="cache-summary"></p>
+            <button id="clear-cache" class="danger">Clear cached verdicts</button>
+        </section>
+    </main>
+    <script src="cache.js"></script>
+    <script src="options.js"></script>
+</body>
+</html>
