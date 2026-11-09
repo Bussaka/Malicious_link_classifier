@@ -61,7 +61,19 @@ def test_missing_dataset_is_reported(tmp_path, monkeypatch):
     assert any('malicious_phish.csv' in m for m in missing)
     assert any('hn_urls.csv' in m for m in missing)
     # Without --skip-fetch the feeds are downloaded, so only the Kaggle file is required
+    monkeypatch.setenv('URLHAUS_AUTH_KEY', 'test-key')
     assert len(retrain.check_prerequisites(skip_fetch=False)) == 1
+
+
+def test_missing_urlhaus_key_is_reported_before_fetching(tmp_path, monkeypatch):
+    monkeypatch.setattr(retrain, 'ROOT', str(tmp_path))
+    monkeypatch.delenv('URLHAUS_AUTH_KEY', raising=False)
+    (tmp_path / 'malicious_phish.csv').write_text('url,type\n')
+    assert any('URLHAUS_AUTH_KEY' in m for m in retrain.check_prerequisites(skip_fetch=False))
+    # A previously downloaded export is enough to retrain without a key
+    (tmp_path / 'data' / 'external').mkdir(parents=True)
+    (tmp_path / 'data' / 'external' / 'urlhaus_recent.csv').write_text('# export\n')
+    assert retrain.check_prerequisites(skip_fetch=False) == []
 
 
 def test_rejected_run_leaves_live_model_untouched(project, monkeypatch):
